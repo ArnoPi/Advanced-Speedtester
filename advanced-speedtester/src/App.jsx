@@ -57,35 +57,30 @@ const SpeedTest = () => {
   const [ipv4, setIpv4] = useState(null);
   const [ipv6, setIpv6] = useState(null);
   const [isp, setIsp] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const progressRef = useRef(null);
 
   useEffect(() => {
-    // Get both IPv4 and IPv6 addresses from ipify service
     fetch("https://api.ipify.org?format=json")
       .then((res) => res.json())
       .then((data) => {
-        setIpv4(data.ip);   // This is the IPv4 address
+        setIpv4(data.ip); 
       })
       .catch(() => {
         setIpv4("Error");
       });
 
-    // Try to fetch IPv6 address from a different API (fallback)
     fetch("https://api6.ipify.org?format=json")
       .then((res) => res.json())
       .then((data) => {
-        setIpv6(data.ip);   // This is the IPv6 address
+        setIpv6(data.ip);
       })
       .catch(() => {
         setIpv6("Error");
       });
     
-    // Fetch ISP info if needed (fallback for ISP)
     fetch("https://ipapi.co/json/")
       .then((res) => res.json())
       .then((data) => {
-        setIsp(data.org);   // ISP info
+        setIsp(data.org);  
       })
       .catch(() => {
         setIsp("Unknown");
