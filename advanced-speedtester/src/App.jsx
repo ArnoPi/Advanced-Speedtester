@@ -36,13 +36,12 @@ const TestCard = styled("div")({
     transform: "translateY(-5px)",
     boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
   },
-  // Custom CSS for IPv6 to ensure it doesn't overflow
   "& .ipv6-address": {
-    whiteSpace: "nowrap", // Prevents wrapping of text
-    overflow: "hidden",   // Hides overflow text
-    textOverflow: "ellipsis", // Adds an ellipsis if the text is too long
-    wordBreak: "break-all",  // Ensures long words break if they exceed container width
-    maxWidth: "100%", // Ensures the address is contained within the box width
+    whiteSpace: "nowrap",
+    overflow: "hidden",  
+    textOverflow: "ellipsis",
+    wordBreak: "break-all",  
+    maxWidth: "100%", 
     textAlign: "center",
   },
 });
@@ -57,35 +56,59 @@ const SpeedTest = () => {
   const [ipv4, setIpv4] = useState(null);
   const [ipv6, setIpv6] = useState(null);
   const [isp, setIsp] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [connectionType, setConnectionType] = useState(null);
+  const [networkAdapter, setNetworkAdapter] = useState(null);
 
   useEffect(() => {
-    fetch("https://api.ipify.org?format=json")
-      .then((res) => res.json())
-      .then((data) => {
-        setIpv4(data.ip); 
-      })
-      .catch(() => {
+    const fetchData = async () => {
+      try {
+        fetch("https://api.ipify.org?format=json")
+        .then((res) => res.json())
+        .then((data) => {
+          setIpv4(data.ip); 
+        })
+        .catch(() => {
+          setIpv4("Error");
+        });
+  
+      fetch("https://api6.ipify.org?format=json")
+        .then((res) => res.json())
+        .then((data) => {
+          setIpv6(data.ip);
+        })
+        .catch(() => {
+          setIpv6("Error");
+        });
+  
+        const ipapiResponse = await fetch("https://ipapi.co/json/");
+        const ipapiData = await ipapiResponse.json();
+        setIsp(ipapiData.org);
+        setLocation({
+          city: ipapiData.city || "Onbekend",
+          country: ipapiData.country_name || "Onbekend",
+        });
+      } catch (error) {
         setIpv4("Error");
-      });
-
-    fetch("https://api6.ipify.org?format=json")
-      .then((res) => res.json())
-      .then((data) => {
-        setIpv6(data.ip);
-      })
-      .catch(() => {
         setIpv6("Error");
-      });
-    
-    fetch("https://ipapi.co/json/")
-      .then((res) => res.json())
-      .then((data) => {
-        setIsp(data.org);  
-      })
-      .catch(() => {
         setIsp("Unknown");
-      });
+        setLocation({
+          city: "Unknown",
+          country: "Unknown",
+        });
+      }
+    };
+  
+    fetchData();
+    if (navigator.connection) {
+      setConnectionType(navigator.connection.effectiveType);
+      setNetworkAdapter(navigator.connection.effectiveType);
+    } else {
+      setConnectionType("Onbekend");
+      setNetworkAdapter("Onbekend");
+    }
   }, []);
+  
 
   const testSpeed = async () => {
     setIsTesting(true);
@@ -241,6 +264,24 @@ const SpeedTest = () => {
             <h3 className="text-gray-200 text-xl mt-4">ISP</h3>
             <div className="text-purple-400 text-2xl font-bold">{isp}</div>
           </TestCard>
+          {/* Land Information */}
+          <TestCard>
+            <NetworkPingIcon className="text-purple-400 text-5xl" />
+            <h3 className="text-gray-200 text-xl mt-4">City</h3>
+            <div className="text-purple-400 text-2xl font-bold">{location ? location.city : "Loading..."}</div>
+          </TestCard>
+          <TestCard>
+            <NetworkPingIcon className="text-purple-400 text-5xl" />
+            <h3 className="text-gray-200 text-xl mt-4">Land</h3>
+            <div className="text-purple-400 text-2xl font-bold">{location ? location.country : "Loading..."}</div>
+          </TestCard>
+          {/* Network Information */}
+          <TestCard>
+            <NetworkPingIcon className="text-purple-400 text-5xl" />
+            <h3 className="text-gray-200 text-xl mt-4">Network Type</h3>
+            <div className="text-purple-400 text-2xl font-bold">{connectionType || "Unknow"}</div>
+          </TestCard>
+          
         </div>
       </div>
     </div>
