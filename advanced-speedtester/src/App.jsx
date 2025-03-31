@@ -4,6 +4,7 @@ import SpeedIcon from "@mui/icons-material/Speed";
 import NetworkPingIcon from "@mui/icons-material/NetworkPing";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import PublicIcon from "@mui/icons-material/Public";
 import { styled } from "@mui/system";
 
 
@@ -35,6 +36,15 @@ const TestCard = styled("div")({
     transform: "translateY(-5px)",
     boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
   },
+  // Custom CSS for IPv6 to ensure it doesn't overflow
+  "& .ipv6-address": {
+    whiteSpace: "nowrap", // Prevents wrapping of text
+    overflow: "hidden",   // Hides overflow text
+    textOverflow: "ellipsis", // Adds an ellipsis if the text is too long
+    wordBreak: "break-all",  // Ensures long words break if they exceed container width
+    maxWidth: "100%", // Ensures the address is contained within the box width
+    textAlign: "center",
+  },
 });
 
 const SpeedTest = () => {
@@ -43,8 +53,44 @@ const SpeedTest = () => {
   const [ping, setPing] = useState(null);
   const [isTesting, setIsTesting] = useState(false);
   const [activeTest, setActiveTest] = useState(null);
+  const [ip, setIp] = useState(null);
+  const [ipv4, setIpv4] = useState(null);
+  const [ipv6, setIpv6] = useState(null);
+  const [isp, setIsp] = useState(null);
   const [progress, setProgress] = useState(0);
   const progressRef = useRef(null);
+
+  useEffect(() => {
+    // Get both IPv4 and IPv6 addresses from ipify service
+    fetch("https://api.ipify.org?format=json")
+      .then((res) => res.json())
+      .then((data) => {
+        setIpv4(data.ip);   // This is the IPv4 address
+      })
+      .catch(() => {
+        setIpv4("Error");
+      });
+
+    // Try to fetch IPv6 address from a different API (fallback)
+    fetch("https://api6.ipify.org?format=json")
+      .then((res) => res.json())
+      .then((data) => {
+        setIpv6(data.ip);   // This is the IPv6 address
+      })
+      .catch(() => {
+        setIpv6("Error");
+      });
+    
+    // Fetch ISP info if needed (fallback for ISP)
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        setIsp(data.org);   // ISP info
+      })
+      .catch(() => {
+        setIsp("Unknown");
+      });
+  }, []);
 
   const testSpeed = async () => {
     setIsTesting(true);
@@ -179,6 +225,26 @@ const SpeedTest = () => {
             ) : (
               <CircularProgress className="text-green-400" size={50} />
             )}
+          </TestCard>
+          {/* IPv4 */}
+          <TestCard>
+            <PublicIcon className="text-yellow-400 text-5xl" />
+            <h3 className="text-gray-200 text-xl mt-4">IPv4 Address</h3>
+            <div className="text-yellow-400 text-2xl font-bold">{ipv4}</div>
+          </TestCard>
+
+          {/* IPv6 */}
+          <TestCard>
+            <PublicIcon className="text-green-400 text-5xl" />
+            <h3 className="text-gray-200 text-xl mt-4">IPv6 Address</h3>
+            <div className="ipv6-address text-green-400 text-2xl font-bold">{ipv6}</div>
+          </TestCard>
+
+          {/* ISP Information */}
+          <TestCard>
+            <NetworkPingIcon className="text-purple-400 text-5xl" />
+            <h3 className="text-gray-200 text-xl mt-4">ISP</h3>
+            <div className="text-purple-400 text-2xl font-bold">{isp}</div>
           </TestCard>
         </div>
       </div>
